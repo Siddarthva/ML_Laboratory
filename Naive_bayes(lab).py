@@ -4,8 +4,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, classification_report
 
-# Load dataset
-newsgroups = fetch_20newsgroups(subset='all')
+# Load only 4 categories to reduce size
+categories = ['comp.graphics', 'sci.med', 'rec.sport.baseball', 'talk.politics.misc']
+
+newsgroups = fetch_20newsgroups(subset='train', categories=categories)
 X, y = newsgroups.data, newsgroups.target
 
 # Split data
@@ -23,9 +25,6 @@ nb_classifier.fit(X_train_tfidf, y_train)
 # Predict
 y_pred = nb_classifier.predict(X_test_tfidf)
 
-# Accuracy + Report
-accuracy = accuracy_score(y_test, y_pred)
-class_report = classification_report(y_test, y_pred, target_names=newsgroups.target_names)
-
-print("Accuracy:", accuracy)
-print("\nClassification Report:\n", class_report)
+# Metrics
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred, target_names=newsgroups.target_names))
