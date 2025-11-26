@@ -1,28 +1,41 @@
 import pandas as pd
-from pgmpy.models import BayesianNetwork
+from pgmpy.models import DiscreteBayesianNetwork
 from pgmpy.estimators import MaximumLikelihoodEstimator
 from pgmpy.inference import VariableElimination
-import warnings
-warnings.filterwarnings("ignore")
 
-data = pd.read_csv("heart.csv")
-df = data[['age','sex','cp','thalach','exang','oldpeak','target']].copy()
+# Load dataset
+data = pd.read_csv('heart.csv')
 
-df['age'] = pd.cut(df['age'], 3, labels=['Young','Middle','Old'])
-df['thalach'] = pd.cut(df['thalach'], 3, labels=['LowHR','MedHR','HighHR'])
-df['oldpeak'] = pd.cut(df['oldpeak'], 3, labels=['LowST','MedST','HighST'])
+# Select important features
+subset_data = data[['age', 'sex', 'cp', 'thalach', 'exang', 'oldpeak', 'target']]
+print(subset_data.head())
 
-model = BayesianNetwork([
-    ('age','target'),('sex','target'),('cp','target'),
-    ('thalach','target'),('exang','target'),('oldpeak','target')
+# Define network structure
+model = DiscreteBayesianNetwork([
+    ('age', 'target'),
+    ('sex', 'target'),
+    ('cp', 'target'),
+    ('thalach', 'target'),
+    ('exang', 'target'),
+    ('oldpeak', 'target')
 ])
 
-model.fit(df, estimator=MaximumLikelihoodEstimator)
-infer = VariableElimination(model)
+# Train the model
+model.fit(subset_data, estimator=MaximumLikelihoodEstimator)
 
-result = infer.query(
-    ['target'], 
-    {'age':'Middle','sex':1,'cp':1,'thalach':'MedHR','exang':0,'oldpeak':'MedST'}
-)
+# Inference
+inference = VariableElimination(model)
 
+# Evidence (input values)
+evidence = {
+    'age': 63,
+    'sex': 1,
+    'cp': 1,
+    'thalach': 150,
+    'exang': 0,
+    'oldpeak': 2.3
+}
+
+# Predict probability of heart disease
+result = inference.query(variables=['target'], evidence=evidence)
 print(result)
